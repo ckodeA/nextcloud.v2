@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud-db
+  labels:
+     app: nextcloud
+  namespace: nextcloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      pod-label: nextcloud-db-pod
+  template:
+    metadata:
+      labels:
+        pod-label: nextcloud-db-pod
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:5.7
+        env:
+        - name: MYSQL_DATABASE
+          value: nextcloud
+        envFrom:
+          - secretRef:
+              name: nextcloud-db-secret
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        volumeMounts:
+          - mountPath: /var/lib/mysql
+            name: db-storage
+            subPath: mysql-data
+      volumes:
+      - name: db-storage
+        persistentVolumeClaim:
+          claimName: nextcloud-pvc
+#        ports:
+#        - containerPort: <Port>
